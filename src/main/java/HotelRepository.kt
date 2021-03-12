@@ -1,10 +1,15 @@
-class HotelRepository(private val hotelDB: HotelDB) {
+class HotelRepository(private val database: HotelDatabase) {
 
     fun find(hotelId: Int): Hotel? {
-        return hotelDB.find(hotelId)
+        return database.hotels.find { it.hotelId == hotelId }
     }
 
     fun update(hotel: Hotel) {
-        hotelDB.update(hotel)
+        val existingHotelIndex = database.hotels.indexOfFirst { it.hotelId == hotel.hotelId }
+
+        if (existingHotelIndex != -1)
+            database.hotels[existingHotelIndex] = hotel
+        else
+            database.hotels.add(hotel)
     }
 }

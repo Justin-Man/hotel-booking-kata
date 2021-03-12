@@ -4,4 +4,5 @@ data class Room(val number : Int, private var roomType: RoomType) {
         this.roomType = roomType
     }
 
+    fun getRoomType() = this.roomType
 }
