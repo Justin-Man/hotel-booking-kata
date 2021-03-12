@@ -23,6 +23,13 @@ class HotelBookingAcceptanceTest {
 
         verify(hotelDB).update(hotel)
     }
+
+    @Test
+    fun `GIVEN hotel does not exist WHEN user sets room THEN exception thrown`() {
+        assertFailsWith(HotelNotFoundException::class) {
+            hotelService.setRoom(hotelId, number, roomType)
+        }
+    }
 }
 
 val hotelId = 1

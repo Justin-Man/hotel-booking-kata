@@ -21,5 +21,4 @@ class InMemoryHotelDBImpl : HotelDB {
             else
                 hotels.add(hotel)
     }
-
 }
