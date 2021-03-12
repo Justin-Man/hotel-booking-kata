@@ -6,6 +6,10 @@ class HotelService(private val hotelRepository: HotelRepository) {
             hotelRepository.update(hotel)
         } ?: throw HotelNotFoundException()
     }
+
+    fun addHotel(hotel: Hotel) {
+        hotelRepository.add(hotel)
+    }
 }
 
 enum class RoomType {
@@ -16,3 +20,4 @@ enum class RoomType {
 }
 
 class HotelNotFoundException : Exception()
+class HotelIDAlreadyExistsException : Exception()

@@ -12,4 +12,12 @@ class HotelRepository(private val database: HotelDatabase) {
         else
             database.hotels.add(hotel)
     }
+
+    fun add(hotel: Hotel) {
+        if (database.hotels.find { it.hotelId == hotel.hotelId } == null)
+            database.hotels.add(hotel)
+        else
+            throw HotelIDAlreadyExistsException()
+
+    }
 }

@@ -23,7 +23,6 @@ class HotelBookingAcceptanceTest {
         hotelService.setRoom(hotelId, number, roomType)
 
         val hotel = hotelDatabase.hotels.first()
-
         assertThat(hotel.rooms.find { it.number == number && it.getRoomType() == roomType}).isNotNull
     }
 
@@ -31,6 +30,26 @@ class HotelBookingAcceptanceTest {
     fun `GIVEN hotel does not exist WHEN user sets room THEN exception thrown`() {
         assertFailsWith(HotelNotFoundException::class) {
             hotelService.setRoom(hotelId, number, roomType)
+        }
+    }
+
+    @Test
+    fun `GIVEN new hotel WHEN user adds hotel THEN hotel added to database`() {
+        val hotel = Hotel(hotelId)
+
+        hotelService.addHotel(hotel)
+
+        val hotelInDatabase = hotelDatabase.hotels.find { it.hotelId == hotelId }
+        assertThat(hotelInDatabase).isNotNull
+    }
+
+    @Test
+    fun `GIVEN hotel already exists WHEN user adds hotel THEN exception thrown`() {
+        val hotel = Hotel(hotelId)
+        hotelDatabase.hotels.add(hotel)
+
+        assertFailsWith(HotelIDAlreadyExistsException::class) {
+            hotelService.addHotel(hotel)
         }
     }
 }
