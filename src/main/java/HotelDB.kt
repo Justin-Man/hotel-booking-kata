@@ -5,16 +5,21 @@ interface HotelDB {
     fun update(hotel: Hotel)
 }
 
-class HotelDBImpl : HotelDB {
+class InMemoryHotelDBImpl : HotelDB {
 
-    private val hotels: List<Hotel> = mutableListOf()
+    private val hotels = mutableListOf<Hotel>()
 
     override fun find(hotelId: Int): Hotel? {
         return hotels.find { it.hotelId == hotelId }
     }
 
     override fun update(hotel: Hotel) {
-        hotels.find { it.hotelId == hotel.hotelId }.
+        val existingHotelIndex = hotels.indexOfFirst { it.hotelId == hotel.hotelId }
+
+            if (existingHotelIndex != -1)
+                hotels[existingHotelIndex] = hotel
+            else
+                hotels.add(hotel)
     }
 
 }
