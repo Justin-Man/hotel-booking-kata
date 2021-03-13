@@ -52,6 +52,24 @@ class HotelBookingAcceptanceTest {
             hotelService.addHotel(hotel)
         }
     }
+
+    @Test
+    fun `GIVEN hotel in database WHEN user queries hotel THEN room count returned`() {
+        val hotel = Hotel(hotelId)
+        hotel.rooms.add(Room(number, roomType))
+        hotelDatabase.hotels.add(hotel)
+
+        val roomCount = hotelService.findHotelBy(hotelId)
+
+        assertThat(roomCount).isEqualTo(1)
+    }
+
+    @Test
+    fun `GIVEN hotel not in database WHEN user queries hotel THEN zero room count returned`() {
+        val roomCount = hotelService.findHotelBy(hotelId)
+
+        assertThat(roomCount).isEqualTo(0)
+    }
 }
 
 val hotelId = 1

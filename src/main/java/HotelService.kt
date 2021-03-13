@@ -10,6 +10,9 @@ class HotelService(private val hotelRepository: HotelRepository) {
     fun addHotel(hotel: Hotel) {
         hotelRepository.add(hotel)
     }
+
+    fun findHotelBy(hotelId: Int) =
+        hotelRepository.find(hotelId)?.rooms?.count() ?: 0
 }
 
 enum class RoomType {
