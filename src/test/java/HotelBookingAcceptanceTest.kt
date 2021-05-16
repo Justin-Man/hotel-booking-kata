@@ -12,14 +12,14 @@ import java.util.*
 
 class HotelBookingAcceptanceTest {
 
-    private val companyDatabase = CompanyInMemoryDatabaseImpl()
-    private val companyRepository = CompanyRepository(companyDatabase)
+    private val companyDatabase = MemoryDatabase<Int, Company>()
+    private val companyRepository = RepositoryImpl(companyDatabase)
     private val companyService = CompanyService(companyRepository)
     private val bookingPolicyDatabase = BookingPolicyInMemoryDatabaseImpl()
     private val bookingPolicyRepository = BookingPolicyRepository(bookingPolicyDatabase)
     private val bookingPolicyService = BookingPolicyService(bookingPolicyRepository, companyRepository)
-    private val hotelDatabase: HotelDatabase = InMemoryHotelDatabaseImpl()
-    private val hotelRepository: HotelRepository = HotelRepository(hotelDatabase)
+    private val hotelDatabase = MemoryDatabase<Int, Hotel>()
+    private val hotelRepository = RepositoryImpl(hotelDatabase)
     private val hotelService: HotelService = HotelService(hotelRepository)
     private val bookingService = BookingService(bookingPolicyService)
     val companyAdmin = CompanyAdmin(companyService, bookingService)
@@ -33,9 +33,8 @@ class HotelBookingAcceptanceTest {
         }
 
         val result = whenever {
-            val employee = Employee(employeeId)
             bookingService.book(
-                employee.id,
+                employeeId,
                 hotelId,
                 hotelRoomType,
                 Date.from(Instant.now()),
@@ -57,7 +56,7 @@ class HotelBookingAcceptanceTest {
     }
 
     private fun `a hotel with one room`() {
-        hotelDatabase.hotels.add(hotel)
+        hotelDatabase.table[hotelId] = hotel
         hotelService.setRoom(hotelId, number, hotelRoomType)
     }
 

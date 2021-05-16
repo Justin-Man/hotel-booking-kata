@@ -1,7 +1,14 @@
 package company
 
-class CompanyService(private val companyRepository: CompanyRepository) {
+import Repository
+
+class CompanyService(private val companyRepository: Repository<Int, Company>) {
     fun addEmployee(companyId: Int, vararg employeeId: Int) {
-        companyRepository.addEmployee(companyId = companyId, *employeeId)
+        val company = companyRepository.find(companyId)
+        employeeId.forEach {
+            if (company?.employees?.contains(it) == false) {
+                company.employees.add(it)
+            }
+        }
     }
 }

@@ -1,19 +1,22 @@
 package company
 
+import MemoryDatabase
+import Repository
+import RepositoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 
 class CompanyServiceTest {
 
-    lateinit var companyDatabase: CompanyInMemoryDatabaseImpl
-    lateinit var companyRepository : CompanyRepository
+    lateinit var companyDatabase: MemoryDatabase<Int, Company>
+    lateinit var companyRepository : Repository<Int, Company>
     private lateinit var companyService : CompanyService
 
     @Before
     fun setUp() {
-        companyDatabase = CompanyInMemoryDatabaseImpl()
-        companyRepository = CompanyRepository(companyDatabase)
+        companyDatabase = MemoryDatabase()
+        companyRepository = RepositoryImpl(companyDatabase)
         companyService = CompanyService(companyRepository)
     }
 
@@ -21,32 +24,39 @@ class CompanyServiceTest {
     fun `adds employee that doesn't already exist`() {
         val companyId = 1
         val employeeId = 1
+        val company = Company(companyId)
+        company.employees.add(employeeId)
+        companyDatabase.table[companyId] = company
 
         companyService.addEmployee(companyId, employeeId)
 
-        val employees = companyDatabase.employees[companyId]
-        assertThat(employees!!.first().id).isEqualTo(employeeId)
+        assertThat(companyDatabase.table[companyId]!!.employees.first()).isEqualTo(employeeId)
     }
 
     @Test
     fun `does not add a duplicate employee id`() {
         val companyId = 1
         val employeeId = 1
-        companyDatabase.employees[companyId] = listOf(Employee(employeeId))
+        val company = Company(companyId)
+        company.employees.add(employeeId)
+        companyDatabase.table[companyId] = company
 
-        companyService.addEmployee(companyId = companyId, employeeId)
+        companyService.addEmployee(companyId, employeeId)
 
-        assertThat(companyDatabase.employees[companyId]).isEqualTo(listOf(Employee(employeeId)))
+        assertThat(companyDatabase.table[companyId]?.employees).isEqualTo(listOf(employeeId))
     }
 
     @Test
-    fun `does not add a duplicate employee id when the company does not have employees`() {
+    fun `adds only distinct employee id when duplicates supplied`() {
         val companyId = 1
         val employeeId = 1
+        val company = Company(companyId)
+        company.employees.add(employeeId)
+        companyDatabase.table[companyId] = company
 
         companyService.addEmployee(companyId = companyId, employeeId, employeeId)
 
-        assertThat(companyDatabase.employees[companyId]).isEqualTo(listOf(Employee(employeeId)))
+        assertThat(companyDatabase.table[companyId]!!.employees).isEqualTo(listOf(employeeId))
     }
 
     @Test
@@ -54,10 +64,13 @@ class CompanyServiceTest {
         val companyId = 1
         val employeeId = 1
         val employeeId2 = 2
+        val company = Company(companyId)
+        company.employees.add(employeeId)
+        companyDatabase.table[companyId] = company
 
         companyService.addEmployee(companyId= companyId, employeeId, employeeId2)
 
-        val employees = companyDatabase.employees[companyId]
-        assertThat(employees).isEqualTo(listOf(Employee(employeeId), Employee(employeeId2)))
+        val employees = companyDatabase.table[companyId]?.employees
+        assertThat(employees).isEqualTo(listOf(employeeId, employeeId2))
     }
 }

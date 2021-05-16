@@ -1,4 +1,4 @@
-class HotelService(private val hotelRepository: HotelRepository) {
+class HotelService(private val hotelRepository: Repository<Int, Hotel>) {
 
     fun setRoom(hotelId: Int, number: Int, roomType: RoomType) {
         hotelRepository.find(hotelId)?.let { hotel ->

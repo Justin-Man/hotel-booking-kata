@@ -1,4 +1,4 @@
-class Hotel(val hotelId: Int) {
+class Hotel(override val id: Int) : WithId<Int> {
 
     var rooms = mutableListOf<Room>()
 

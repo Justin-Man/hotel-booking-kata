@@ -5,25 +5,25 @@ import kotlin.test.assertFailsWith
 
 class HotelServiceTest {
 
-    lateinit var hotelDatabase: HotelDatabase
-    private lateinit var hotelRepository: HotelRepository
+    lateinit var database: MemoryDatabase<Int, Hotel>
+    private lateinit var repository: RepositoryImpl<Int, Hotel>
     private lateinit var hotelService: HotelService
 
     @Before
     fun setUp() {
-        hotelDatabase = InMemoryHotelDatabaseImpl()
-        hotelRepository = HotelRepository(hotelDatabase)
-        hotelService = HotelService(hotelRepository)
+        database = MemoryDatabase()
+        repository = RepositoryImpl(database)
+        hotelService = HotelService(repository)
     }
 
     @Test
     fun `GIVEN hotel exists WHEN user sets room THEN room updated`() {
-        hotelDatabase.hotels.add(Hotel(hotelId))
+        database.table[hotelId] = Hotel(hotelId)
 
         hotelService.setRoom(hotelId, number, roomType)
 
-        val hotel = hotelDatabase.hotels.first()
-        assertThat(hotel.rooms.find { it.number == number && it.getRoomType() == roomType}).isNotNull
+        val hotel = database.table[hotelId]
+        assertThat(hotel!!.rooms.find { it.number == number && it.getRoomType() == roomType}).isNotNull
     }
 
     @Test
@@ -39,36 +39,36 @@ class HotelServiceTest {
 
         hotelService.addHotel(hotel)
 
-        val hotelInDatabase = hotelDatabase.hotels.find { it.hotelId == hotelId }
+        val hotelInDatabase = database.table[hotelId]
         assertThat(hotelInDatabase).isNotNull
     }
 
     @Test
     fun `GIVEN hotel already exists WHEN user adds hotel THEN exception thrown`() {
         val hotel = Hotel(hotelId)
-        hotelDatabase.hotels.add(hotel)
+        database.table[hotelId] = hotel
 
-        assertFailsWith(HotelIDAlreadyExistsException::class) {
+        assertFailsWith(AlreadyExistsException::class) {
             hotelService.addHotel(hotel)
         }
     }
 
     @Test
-    fun `GIVEN hotel in database WHEN user queries hotel THEN room count returned`() {
+    fun `GIVEN hotel in database WHEN user queries hotel THEN hotel returned`() {
         val hotel = Hotel(hotelId)
         hotel.rooms.add(Room(number, roomType))
-        hotelDatabase.hotels.add(hotel)
+        database.table[hotelId] = hotel
 
         val roomCount = hotelService.findHotelBy(hotelId)
 
-        assertThat(roomCount).isEqualTo(1)
+        assertThat(roomCount).isEqualTo(hotel)
     }
 
     @Test
-    fun `GIVEN hotel not in database WHEN user queries hotel THEN zero room count returned`() {
-        val roomCount = hotelService.findHotelBy(hotelId)
-
-        assertThat(roomCount).isEqualTo(0)
+    fun `GIVEN hotel not in database WHEN user queries hotel THEN exception thrown`() {
+        assertFailsWith(HotelNotFoundException::class) {
+            hotelService.findHotelBy(hotelId)
+        }
     }
 }
 

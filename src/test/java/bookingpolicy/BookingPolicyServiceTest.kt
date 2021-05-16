@@ -1,11 +1,9 @@
 package bookingpolicy
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.given
-import com.nhaarman.mockitokotlin2.mock
-import company.CompanyInMemoryDatabaseImpl
-import company.CompanyRepository
-import company.Employee
+import MemoryDatabase
+import Repository
+import RepositoryImpl
+import company.Company
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -15,13 +13,13 @@ internal class BookingPolicyServiceTest {
     lateinit var bookingPolicyDatabase: BookingPolicyInMemoryDatabaseImpl
     lateinit var bookingPolicyRepository : BookingPolicyRepository
     private lateinit var bookingPolicyService : BookingPolicyService
-    lateinit var companyDatabase: CompanyInMemoryDatabaseImpl
-    lateinit var companyRepository : CompanyRepository
+    lateinit var companyDatabase: MemoryDatabase<Int, Company>
+    lateinit var companyRepository : Repository<Int, Company>
 
     @Before
     fun setUp() {
-        companyDatabase = CompanyInMemoryDatabaseImpl()
-        companyRepository = CompanyRepository(companyDatabase)
+        companyDatabase = MemoryDatabase()
+        companyRepository = RepositoryImpl(companyDatabase)
         bookingPolicyDatabase = BookingPolicyInMemoryDatabaseImpl()
         bookingPolicyRepository = BookingPolicyRepository(bookingPolicyDatabase)
         bookingPolicyService = BookingPolicyService(bookingPolicyRepository, companyRepository)
@@ -43,7 +41,9 @@ internal class BookingPolicyServiceTest {
         val roomType = RoomType.masterSuite
         val employeeId = 1
         val companyId = 100
-        companyDatabase.employees[companyId] = listOf(Employee(employeeId))
+        val company = Company(companyId)
+        company.employees.add(employeeId)
+        companyDatabase.table[companyId] = company
         bookingPolicyDatabase.employeesWithBookingPolicies[employeeId] = listOf(RoomType.juniorSuite)
 
         val result = bookingPolicyService.isBookingAllowed(employeeId, roomType)
@@ -58,7 +58,9 @@ internal class BookingPolicyServiceTest {
         val companyId = 100
         bookingPolicyDatabase.employeesWithBookingPolicies[employeeId] = emptyList()
         bookingPolicyDatabase.companyBookingPolicies[companyId] = emptyList()
-        companyDatabase.employees[companyId] = listOf(Employee(employeeId))
+        val company = Company(companyId)
+        company.employees.add(employeeId)
+        companyDatabase.table[companyId] = company
 
         val result = bookingPolicyService.isBookingAllowed(employeeId, roomType)
 
