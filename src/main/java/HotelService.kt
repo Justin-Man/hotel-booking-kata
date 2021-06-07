@@ -17,10 +17,10 @@ class HotelService(private val hotelRepository: Repository<Int, Hotel>) {
 }
 
 enum class RoomType {
-    standardSingle,
-    standardDouble,
-    juniorSuite,
-    masterSuite
+    StandardSingle,
+    StandardDouble,
+    JuniorSuite,
+    MasterSuite
 }
 
 class HotelNotFoundException : Exception()

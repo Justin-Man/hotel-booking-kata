@@ -1,9 +1,13 @@
+import company.Company
+
 interface Repository<K, V : WithId<K>> {
     fun add(value: V)
 
     fun update(value: V)
 
     fun find(id: K): V?
+
+    fun findKey(id: K): Int
 }
 
 class RepositoryImpl<K, V : WithId<K>>(private val database: Database<K, V>) : Repository<K, V> {
@@ -24,6 +28,12 @@ class RepositoryImpl<K, V : WithId<K>>(private val database: Database<K, V>) : R
 
     override fun find(id: K): V? {
         return database.table[id]
+    }
+
+    override fun findKey(id: K): Int {
+        val company = database.table.values.map { it as Company }.find { it.employees.contains(id) }
+
+        return company!!.id
     }
 }
 

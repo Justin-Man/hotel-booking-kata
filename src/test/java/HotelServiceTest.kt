@@ -75,4 +75,4 @@ class HotelServiceTest {
 val hotelId = 1
 val hotel = Hotel(hotelId)
 val number = 11
-val roomType = RoomType.standardSingle
+val roomType = RoomType.StandardSingle
