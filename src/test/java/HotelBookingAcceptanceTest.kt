@@ -31,13 +31,13 @@ class HotelBookingAcceptanceTest {
     private val hotelRepository = RepositoryImpl(hotelDatabase)
     private val hotelService: HotelService = HotelService(hotelRepository)
 
-    private val bookingService = BookingService(bookingPolicyService)
+    private val bookingService = BookingService(bookingPolicyService, hotelService)
     val companyAdmin = CompanyAdmin(companyService, bookingService)
 
     @Test
     fun `employee cannot book room type against employee booking policy`() {
         given {
-            `a hotel with one room`()
+            `a hotel with two rooms`() // needs two rooms
             `company added`()
             `an employee added to a company`(companyId, employeeId)
             `an employee booking policy set`()
@@ -58,6 +58,71 @@ class HotelBookingAcceptanceTest {
         }
     }
 
+    @Test
+    fun `check out date not set at least one day from check in date results in error`() {
+        given {
+            `a hotel with one room`(roomType)
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+            `an employee booking policy set`()
+        }
+
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                Date.from(Instant.now()),
+                Date.from(Instant.now())
+            )
+        }
+
+        then { assertThat(result).isEqualTo(Booking.Error.InvalidCheckOutDate) }
+    }
+
+    @Test
+    fun `booking disallowed when booking room at non-existent hotel`() {
+        given {
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+            `an employee booking policy set`()
+        }
+
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                Date.from(Instant.now()),
+                Date.from(Instant.now().plus(Duration.ofDays(1)))
+            )
+        }
+
+        then { assertThat(result).isEqualTo(Booking.Error.InvalidHotel) }
+    }
+
+    @Test
+    fun `valid room type is provided by the hotel when booking`() {
+        given {
+            `a hotel with one room`(hotelRoomType)
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+            `an employee booking policy set`()
+        }
+
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                Date.from(Instant.now()),
+                Date.from(Instant.now().plus(Duration.ofDays(1)))
+            )
+        }
+
+        then { assertThat(result).isEqualTo(Booking.Error.InvalidRoomType) }
+    }
+
     private fun `company added`() {
         companyDatabase.table[companyId] = Company(companyId)
     }
@@ -70,8 +135,14 @@ class HotelBookingAcceptanceTest {
         companyService.addEmployee(companyId, employeeId)
     }
 
-    private fun `a hotel with one room`() {
+    private fun `a hotel with one room`(roomType: RoomType) {
         hotelDatabase.table[hotelId] = hotel
+        hotelService.setRoom(hotelId, number, roomType)
+    }
+
+    private fun `a hotel with two rooms`() {
+        hotelDatabase.table[hotelId] = hotel
+        hotelService.setRoom(hotelId, number, roomType)
         hotelService.setRoom(hotelId, number, hotelRoomType)
     }
 
@@ -84,9 +155,7 @@ class HotelBookingAcceptanceTest {
     val employeeId = 1
 
     /*
-    * GIVEN hotel exists and room type available and company employee added WHEN room booked with invalid check out date THEN booking invalid checkout date error
-    * GIVEN hotel does not exists WHEN room booked THEN booking disallowed
-    * Given hotel hotel exists validates room type is provided by the hotel when booking
+    * valid room type is provided by the hotel when booking
     * Employee can book room type according to employee booking policy
     * Employee can book room type according to company booking policy
     * Given employee can book room when at at least one room type availble in booking period THEN Booking allowed
