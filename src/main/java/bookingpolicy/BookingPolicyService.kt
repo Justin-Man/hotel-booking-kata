@@ -9,7 +9,6 @@ class BookingPolicyService(
     private val employeeBookingPolicyRepository: Repository<Int, EmployeeBookingPolicy>,
     private val companyBookingPolicyRepository: Repository<Int, CompanyBookingPolicy>,
     private val companyRepository: Repository<Int, Company>,
-    private val employeeRepository: Repository<Int, Employee>
 ) {
 
     fun setEmployeePolicy(employeeId: Int, roomTypes: List<RoomType>) {
@@ -18,7 +17,7 @@ class BookingPolicyService(
 
     fun isBookingAllowed(employeeId: Int, roomType: RoomType): Boolean {
 
-        val companyId = employeeRepository.find(employeeId)?.companyId
+        val companyId = companyRepository.scan { it.employees.contains(employeeId) }.first().id
         val employeePolicy = employeeBookingPolicyRepository.find(employeeId)
         if (employeePolicy?.allowedRoomTypes?.contains(roomType) == true) {
             return true

@@ -38,8 +38,7 @@ internal class EmployeeBookingPolicyServiceTest {
         bookingPolicyService = BookingPolicyService(
             employeeBookingPolicyRepository,
             companyBookingPolicyRepository,
-            companyRepository,
-            employeeRepository
+            companyRepository
         )
     }
 

@@ -1,5 +1,3 @@
-import company.Company
-
 interface Repository<K, V : WithId<K>> {
     fun add(value: V)
 
@@ -7,7 +5,7 @@ interface Repository<K, V : WithId<K>> {
 
     fun find(id: K): V?
 
-    fun findKey(id: K): Int
+    fun scan(filter: (V) -> Boolean): List<V>
 }
 
 class RepositoryImpl<K, V : WithId<K>>(private val database: Database<K, V>) : Repository<K, V> {
@@ -30,10 +28,8 @@ class RepositoryImpl<K, V : WithId<K>>(private val database: Database<K, V>) : R
         return database.table[id]
     }
 
-    override fun findKey(id: K): Int {
-        val company = database.table.values.map { it as Company }.find { it.employees.contains(id) }
-
-        return company!!.id
+    override fun scan(filter: (V) -> Boolean): List<V> {
+        return database.table.filterValues(filter).values.toList()
     }
 }
 

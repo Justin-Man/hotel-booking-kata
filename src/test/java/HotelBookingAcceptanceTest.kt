@@ -18,13 +18,10 @@ class HotelBookingAcceptanceTest {
     private val companyBookingPolicyDatabase = MemoryDatabase<Int, CompanyBookingPolicy>()
     private val employeeBookingPolicyRepository = RepositoryImpl(employeeBookingPolicyDatabase)
     private val companyBookingPolicyRepository = RepositoryImpl(companyBookingPolicyDatabase)
-    private val employeeDatabase = MemoryDatabase<Int, Employee>()
-    private val employeeRepository = RepositoryImpl(employeeDatabase)
     private val bookingPolicyService = BookingPolicyService(
         employeeBookingPolicyRepository,
         companyBookingPolicyRepository,
-        companyRepository,
-        employeeRepository
+        companyRepository
     )
 
     private val hotelDatabase = MemoryDatabase<Int, Hotel>()
@@ -32,7 +29,6 @@ class HotelBookingAcceptanceTest {
     private val hotelService: HotelService = HotelService(hotelRepository)
 
     private val bookingService = BookingService(bookingPolicyService, hotelService)
-    val companyAdmin = CompanyAdmin(companyService, bookingService)
 
     @Test
     fun `employee cannot book room type against employee booking policy`() {

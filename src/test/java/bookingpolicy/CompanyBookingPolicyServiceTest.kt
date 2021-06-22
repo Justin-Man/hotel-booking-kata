@@ -38,8 +38,7 @@ class CompanyBookingPolicyServiceTest {
         bookingPolicyService = BookingPolicyService(
             employeeBookingPolicyRepository,
             companyBookingPolicyRepository,
-            companyRepository,
-            employeeRepository
+            companyRepository
         )
     }
 
@@ -51,5 +50,19 @@ class CompanyBookingPolicyServiceTest {
         bookingPolicyService.setCompanyPolicy(companyId, allowedRoomtypes)
 
         assertThat(companyBookingPolicyDatabase.table[companyId]!!.allowedRoomTypes).isEqualTo(allowedRoomtypes)
+    }
+
+    @Test
+    fun test() {
+        val company = Company(100)
+        val company1 = Company(500)
+        company.employees.add(1)
+        company1.employees.add(2)
+        companyRepository.add(company)
+        companyRepository.add(company1)
+
+        val result = companyRepository.scan { it.employees.contains(2) }.firstOrNull()
+
+        assertThat(result).isEqualTo(company1)
     }
 }
