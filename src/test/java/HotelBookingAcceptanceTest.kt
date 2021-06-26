@@ -119,6 +119,31 @@ class HotelBookingAcceptanceTest {
         then { assertThat(result).isEqualTo(Booking.Error.InvalidRoomType) }
     }
 
+    @Test
+    fun `employee can book room type according to employee booking policy`() {
+        val bookingId = 11
+        given {
+            `a hotel with one room`(roomType)
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+            `an employee booking policy set`()
+        }
+
+        val checkIn = Date.from(Instant.now())
+        val checkOut = Date.from(Instant.now().plus(Duration.ofDays(10)))
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                checkIn,
+                checkOut
+            )
+        }
+
+        then { assertThat(result).isEqualTo(Booking.Success(bookingId, employeeId, hotelId, checkIn, checkOut)) }
+    }
+
     private fun `company added`() {
         companyDatabase.table[companyId] = Company(companyId)
     }
@@ -151,10 +176,10 @@ class HotelBookingAcceptanceTest {
     val employeeId = 1
 
     /*
-    * valid room type is provided by the hotel when booking
-    * Employee can book room type according to employee booking policy
-    * Employee can book room type according to company booking policy
-    * Given employee can book room when at at least one room type availble in booking period THEN Booking allowed
+    *
+    *
+    * Hotel rooms can be booked many times as long as there are no conflicts with the dates.
+    * Given employee can book room when at at least one room type available in booking period THEN Booking allowed
     * Booking can be made within hotel room capacity
     * booking cannot be made at hotel that exceeds hotel room capacity
     * */

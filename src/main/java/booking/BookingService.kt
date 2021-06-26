@@ -1,6 +1,5 @@
 package booking
 
-import Hotel
 import HotelNotFoundException
 import HotelService
 import RoomType
@@ -32,7 +31,12 @@ class BookingService(
             !bookingPolicyService.isBookingAllowed(employeeId, roomType) -> Booking.Error.AgainstEmployeePolicy
             !checkOut.after(checkIn) -> Booking.Error.InvalidCheckOutDate
 
-            else -> TODO()
+            else -> {
+                val hotel = hotelService.findHotelBy(hotelId)
+                val booking = Booking.Success("$employeeId$hotelId".toInt(), employeeId, hotelId, checkIn, checkOut)
+                hotel.addReservation(booking)
+                booking
+            }
         }
 
     }
