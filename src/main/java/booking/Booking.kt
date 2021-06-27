@@ -1,6 +1,7 @@
 package booking
 
-import java.util.*
+import Room
+import java.time.LocalDate
 
 sealed class Booking {
     sealed class Error : Booking() {
@@ -8,13 +9,15 @@ sealed class Booking {
         object InvalidCheckOutDate : Error()
         object InvalidHotel : Error()
         object InvalidRoomType : Error()
+        object NoRoomsAvailable : Error()
     }
 
     data class Success(
         val bookingId: Int,
         val employeeId: Int,
         val hotelId: Int,
-        val checkIn: Date,
-        val checkOut: Date
+        val checkIn: LocalDate,
+        val checkOut: LocalDate,
+        val room: Room
     ) : Booking()
 }

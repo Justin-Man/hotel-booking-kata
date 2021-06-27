@@ -1,11 +1,13 @@
 import booking.Booking
 import java.time.Instant
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 class Hotel(override val id: Int) : WithId<Int> {
 
     var rooms = mutableListOf<Room>()
-    val bookedRoomsDiary = hashMapOf<Instant, List<Booking>>()
+    val roomsWithNoBooking = mutableListOf<Room>()
+    val bookedRoomsDiary = hashMapOf<LocalDate, List<Room>>()
 
     fun setRoom(number: Int, roomType: RoomType) {
         val room = Room(number, roomType)
@@ -14,16 +16,38 @@ class Hotel(override val id: Int) : WithId<Int> {
     }
 
     fun addReservation(booking: Booking.Success) {
-        var date = booking.checkIn.toInstant()
-        while (date.isBefore(booking.checkOut.toInstant())) {
+        var date = booking.checkIn
+        while (date.isBefore(booking.checkOut)) {
 
             if (bookedRoomsDiary[date] != null) {
-                bookedRoomsDiary[date]?.plus(booking)
+                bookedRoomsDiary[date]?.plus(booking.room)
             } else {
-                bookedRoomsDiary[date] = listOf(booking)
+                bookedRoomsDiary[date] = listOf(booking.room)
             }
 
             date = date.plus(1, ChronoUnit.DAYS)
         }
+    }
+
+    fun checkRoomAvailability(checkInDate: LocalDate, checkOutDate: LocalDate): List<Room> {
+
+        // are there rooms that haven't been booked at all? then there are available rooms for the whole booking period
+
+        // make a custom range of dates
+        // iterate through date range and take rooms out that are booked on this date
+        // return available rooms in an available rooms object
+        var date = checkInDate
+        val allRooms = rooms
+        while (!date.isAfter(checkOutDate)) {
+            if (bookedRoomsDiary[date] != null) {
+                bookedRoomsDiary[date]?.forEach { bookedRoom ->
+                    allRooms.removeIf { it.number == bookedRoom.number }
+                }
+            }
+
+            date = date.plus(1, ChronoUnit.DAYS)
+        }
+
+        return allRooms
     }
 }
