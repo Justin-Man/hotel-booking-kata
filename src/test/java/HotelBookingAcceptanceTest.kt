@@ -4,8 +4,6 @@ import bookingpolicy.*
 import company.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.time.Duration
-import java.time.Instant
 import java.time.LocalDate
 
 class HotelBookingAcceptanceTest {
@@ -146,22 +144,21 @@ class HotelBookingAcceptanceTest {
 
     @Test
     fun `booking not allowed when no rooms available for entire booking period`() {
+        val checkIn = LocalDate.now()
+        val checkOut = LocalDate.now().plusDays(10)
         given {
             `a hotel with one room`(roomType)
             `company added`()
             `an employee added to a company`(companyId, employeeId)
-        }
-
-        val checkIn = LocalDate.now()
-        val checkOut = LocalDate.now().plusDays(10)
-        whenever {
-            bookingService.book(
-                employeeId,
-                hotelId,
-                roomType,
-                checkIn,
-                checkOut
-            )
+            whenever {
+                bookingService.book(
+                    employeeId,
+                    hotelId,
+                    roomType,
+                    checkIn,
+                    checkOut
+                )
+            }
         }
 
         val result = whenever {
@@ -175,6 +172,96 @@ class HotelBookingAcceptanceTest {
         }
 
         assertThat(result).isEqualTo(Booking.Error.NoRoomsAvailable)
+    }
+
+    @Test
+    fun `booking not allowed when room is not available for one day out of booking period`() {
+        given {
+            `a hotel with one room`(roomType)
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+            whenever {
+                bookingService.book(
+                    employeeId,
+                    hotelId,
+                    roomType,
+                    LocalDate.now().plusDays(1),
+                    LocalDate.now().plusDays(2)
+                )
+            }
+            whenever {
+                bookingService.book(
+                    employeeId,
+                    hotelId,
+                    roomType,
+                    LocalDate.now().plusDays(2),
+                    LocalDate.now().plusDays(3)
+                )
+            }
+            whenever {
+                bookingService.book(
+                    employeeId,
+                    hotelId,
+                    roomType,
+                    LocalDate.now().plusDays(3),
+                    LocalDate.now().plusDays(4)
+                )
+            }
+            whenever {
+                bookingService.book(
+                    employeeId,
+                    hotelId,
+                    roomType,
+                    LocalDate.now().plusDays(4),
+                    LocalDate.now().plusDays(5)
+                )
+            }
+        }
+
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                LocalDate.now(),
+                LocalDate.now().plusDays(10)
+            )
+        }
+
+        assertThat(result).isEqualTo(Booking.Error.NoRoomsAvailable)
+    }
+
+    @Test
+    fun `booking allowed when room is available for entire booking period`() {
+        val bookingId = 11
+        val checkIn = LocalDate.now()
+        val checkOut = LocalDate.now().plusDays(10)
+        given {
+            `a hotel with one room`(roomType)
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+        }
+
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                checkIn,
+                checkOut
+            )
+        }
+
+        assertThat(result).isEqualTo(
+            Booking.Success(
+                bookingId,
+                employeeId,
+                hotelId,
+                checkIn,
+                checkOut,
+                Room(number, roomType)
+            )
+        )
     }
 
     private fun `company added`() {
@@ -196,7 +283,7 @@ class HotelBookingAcceptanceTest {
 
     private fun `a hotel with two rooms`() {
         hotelDatabase.table[hotelId] = hotel
-        hotelService.setRoom(hotelId, number, roomType)
+        hotelService.setRoom(hotelId, number+1, roomType)
         hotelService.setRoom(hotelId, number, hotelRoomType)
     }
 
@@ -210,11 +297,8 @@ class HotelBookingAcceptanceTest {
 
     /*
     *
-    * if wanted room type is unavailable for the booking period then return roomTypeUnavailable
     * Hotel rooms can be booked many times as long as there are no conflicts with the dates.
-    * Given employee can book room when at at least one room type available in booking period THEN Booking allowed
-    * Booking can be made within hotel room capacity
-    * booking cannot be made at hotel that exceeds hotel room capacity
+    *
     * */
 }
 

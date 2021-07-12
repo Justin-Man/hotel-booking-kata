@@ -1,12 +1,10 @@
 import booking.Booking
-import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 class Hotel(override val id: Int) : WithId<Int> {
 
     var rooms = mutableListOf<Room>()
-    val roomsWithNoBooking = mutableListOf<Room>()
     val bookedRoomsDiary = hashMapOf<LocalDate, List<Room>>()
 
     fun setRoom(number: Int, roomType: RoomType) {
@@ -30,12 +28,6 @@ class Hotel(override val id: Int) : WithId<Int> {
     }
 
     fun checkRoomAvailability(checkInDate: LocalDate, checkOutDate: LocalDate): List<Room> {
-
-        // are there rooms that haven't been booked at all? then there are available rooms for the whole booking period
-
-        // make a custom range of dates
-        // iterate through date range and take rooms out that are booked on this date
-        // return available rooms in an available rooms object
         var date = checkInDate
         val allRooms = rooms
         while (!date.isAfter(checkOutDate)) {
