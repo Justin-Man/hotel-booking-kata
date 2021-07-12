@@ -264,6 +264,34 @@ class HotelBookingAcceptanceTest {
         )
     }
 
+    @Test
+    fun `bookings on same day should not exceed the number of hotel rooms`() {
+        val checkIn = LocalDate.now()
+        val checkOut = LocalDate.now().plusDays(10)
+        given {
+            `a hotel with one room`(roomType)
+            `all hotel rooms booked on the same day`()
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+        }
+
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                checkIn,
+                checkOut
+            )
+        }
+
+        assertThat(result).isEqualTo(Booking.Error.NoRoomsAvailable)
+    }
+
+    private fun `all hotel rooms booked on the same day`() {
+        hotel.bookedRoomsDiary[LocalDate.now()] = listOf(hotel.rooms.first())
+    }
+
     private fun `company added`() {
         companyDatabase.table[companyId] = Company(companyId)
     }
@@ -298,7 +326,6 @@ class HotelBookingAcceptanceTest {
     /*
     *
     * Hotel rooms can be booked many times as long as there are no conflicts with the dates.
-    *
     * */
 }
 
