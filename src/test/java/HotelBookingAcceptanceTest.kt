@@ -139,7 +139,18 @@ class HotelBookingAcceptanceTest {
             )
         }
 
-        then { assertThat(result).isEqualTo(Booking.Success(bookingId, employeeId, hotelId, checkIn, checkOut, Room(number, roomType))) }
+        then {
+            assertThat(result).isEqualTo(
+                Booking.Success(
+                    bookingId,
+                    employeeId,
+                    hotelId,
+                    checkIn,
+                    checkOut,
+                    Room(number, roomType)
+                )
+            )
+        }
     }
 
     @Test
@@ -180,7 +191,7 @@ class HotelBookingAcceptanceTest {
             `a hotel with one room`(roomType)
             `company added`()
             `an employee added to a company`(companyId, employeeId)
-            whenever {
+
                 bookingService.book(
                     employeeId,
                     hotelId,
@@ -188,8 +199,8 @@ class HotelBookingAcceptanceTest {
                     LocalDate.now().plusDays(1),
                     LocalDate.now().plusDays(2)
                 )
-            }
-            whenever {
+
+
                 bookingService.book(
                     employeeId,
                     hotelId,
@@ -197,8 +208,8 @@ class HotelBookingAcceptanceTest {
                     LocalDate.now().plusDays(2),
                     LocalDate.now().plusDays(3)
                 )
-            }
-            whenever {
+
+
                 bookingService.book(
                     employeeId,
                     hotelId,
@@ -206,8 +217,8 @@ class HotelBookingAcceptanceTest {
                     LocalDate.now().plusDays(3),
                     LocalDate.now().plusDays(4)
                 )
-            }
-            whenever {
+
+
                 bookingService.book(
                     employeeId,
                     hotelId,
@@ -215,7 +226,7 @@ class HotelBookingAcceptanceTest {
                     LocalDate.now().plusDays(4),
                     LocalDate.now().plusDays(5)
                 )
-            }
+
         }
 
         val result = whenever {
@@ -286,6 +297,47 @@ class HotelBookingAcceptanceTest {
         }
 
         assertThat(result).isEqualTo(Booking.Error.NoRoomsAvailable)
+    }
+
+    @Test
+    fun `hotel rooms can be booked many times as long as there are no date conflicts`() {
+        val checkIn = LocalDate.now()
+        val checkOut = checkIn.plusDays(1)
+        val nextCheckIn = checkIn.plusDays(3)
+        val nextCheckOut = checkOut.plusDays(3)
+        given {
+            `a hotel with one room`(roomType)
+            `company added`()
+            `an employee added to a company`(companyId, employeeId)
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                checkIn,
+                checkOut
+            )
+        }
+
+        val result = whenever {
+            bookingService.book(
+                employeeId,
+                hotelId,
+                roomType,
+                nextCheckIn,
+                nextCheckOut
+            )
+        }
+
+        assertThat(result).isEqualTo(
+            Booking.Success(
+                bookingId = 11,
+                employeeId,
+                hotelId,
+                nextCheckIn,
+                nextCheckOut,
+                Room(number, roomType)
+            )
+        )
     }
 
     private fun `all hotel rooms booked on the same day`() {
